@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<?php
+include("b.php");
+>
+<title>HANGMAN</title>
+<meta charset="utf-8">
+<style>
+    .pic{
+        width: 400px;
+        height: 400px;
+    }
+</style>
+<html>
+    <body>
+        <div>
+            <img class="pic" id = "h" src="img/h.png">
+            <img class="pic" id = "a" src="img/a.png">
+            <img class="pic" id = "n" src="img/n.png">
+            <img class="pic" id = "g" src="img/g.png">
+            <img class="pic" id = "m" src="img/m.png">
+            <img class="pic" id = "z" src="img/z.png">
+        </div>
+        <div>
+            <li id="dis" >None</li><br>
+            <li id="ans"></li><br>
+            
+        </div>
+        <div>
+            <a id="err" style="display: None"></a>
+        </div>
+        <div>
+            <input id="ass">
+            <button id="bt" onclick="clk()">GO</button>
+        </div>
+        <div>
+            <br>
+            <button id="re" onclick="" style="display: none;">PLAY AGAIN</button>
+        </div>
+    </body>
+</html>
+<script>
+    var a = ["h", "a", "n", "g", "m", "z"];
+    var sol = [];
+
+    var ans;
+    var desc;
+
+    for(var i=1; i<6;i++){
+        document.getElementById(a[i]).style.display = "none";
+    }
+    function egtin(){
+        const xmlhttp = new XMLHttpRequest();
+        xmlhttp.onload = function() {
+            var r = JSON.parse(this.responseText);
+            desc = r["desc"];
+            ans = r["ans"];
+            console.log(desc, ans);
+            var q = [desc, ans];
+            
+            console.log(q);
+            document.getElementById("dis").innerText = q[0];
+            var lin = "";
+            for(var i=0;i<q[1].length;i++){
+                lin = lin+"_ ";
+                sol[i]=" ";
+            }
+            document.getElementById("ans").innerText = lin;
+            console.log(lin);
+        }
+        xmlhttp.open("GET", "b.php");
+        xmlhttp.send();
+    }
+    function fill(){
+        egtin();
+    }
+    fill();
+
+    function check(as){
+        var co = Array();
+        var id = 0;
+        for(var i = 0; i<ans.length; i++){
+            if(ans[i] == as){
+                co[id] = i;
+                id++;
+            }
+        }
+        return co;
+    }
+
+    var err_count = 0;
+
+    function shw(){
+        err_count += 1;
+        for(var i=0; i<6;i++){
+            document.getElementById(a[i]).style.display = "none";
+            if (i == err_count){
+                document.getElementById(a[i]).style.display = "block";
+            }
+        }
+    }
+    function stp(){
+        document.getElementById("bt").onclick = "";
+        document.getElementById("re").style.display = "block";
+        document.getElementById("re").onclick = restrt;
+    }
+
+    function complete(){
+        var text = "";
+        for(var i =0; i<sol.length; i++){
+            text += sol[i];
+        }
+        console.log("complete",text,ans);
+        if(text == ans){
+            console.log("same");
+            document.getElementById("err").innerText = "COMPLETE";
+            
+            document.getElementById("err").style.display = "block";
+            stp();
+
+        }
+
+        if (err_count == 6){
+            document.getElementById("err").innerText = "FAILED TO COMPLETE";
+            
+            document.getElementById("err").style.display = "block";
+            stp();
+        }
+    }
+
+    function clk(){
+        
+        var ass = document.getElementById("ass").value;
+        document.getElementById("err").innerText = "";
+        document.getElementById("err").style.display = 'none';
+
+        console.log(ass);
+        for(var i = 0; i<ass.length; i++){
+            var co = check(ass[i]);
+            console.log(co);
+            if (co.length == 0){
+                document.getElementById("err").innerText = "DID NOT MATCH";
+                document.getElementById("err").style.display = "block";
+                console.log("no");
+                shw();
+                continue;
+
+            }
+            else{
+                for(var k=0; k<co.length; k++){
+                    sol[co[k]] = ass[i];
+                }
+                for(var j = 0 ; j<co.length; j++){
+                    var o = "";
+                    for(var k = 0; k<ans.length; k++){
+                        if (sol[k] == " "){
+                            o += "_ ";
+                        }
+                        else{
+                            o+=sol[k];
+                            o+=" ";
+                        }
+                    }
+                    console.log(o);
+                    document.getElementById("ans").innerText = o;
+                }
+            }
+        }
+        document.getElementById("ass").value = "";
+        complete();
+        
+    }
+
+    function restrt(){
+        var sol = [];
+
+        for(var i=1; i<6;i++){
+            document.getElementById(a[i]).style.display = "none";
+        }
+        document.getElementById(a[0]).style.display = "block";
+        fill();
+        document.getElementById("bt").onclick = clk;
+        document.getElementById("re").style.display = "block";
+        document.getElementById("err").style.display = "none";
+        document.getElementById("re").style.display = "none";
+        document.getElementById("re").onclick = restrt;
+        err_count = 0;
+        document.getElementById("ass").value = "";
+    }
+</script>
+
